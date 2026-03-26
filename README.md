@@ -1,3 +1,3 @@
 # NemoClaw: Deploying autonomous agent in OpenShell with Azure Kubernetes Services (AKS)
 
-Provisioning of Nvidia's NemoClaw / OpenShell in Microsoft Azure environment on Kubernetes platform.
+NemoClaw is Nvidia's riggidised version of a popular autonomous agentic platform, OpenClaw.
