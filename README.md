@@ -1,9 +1,11 @@
 # NemoClaw: AI agent deployment on Azure Kubernetes Services (AKS)
 
-This repo demonstrates the deployment of **NVIDIA NemoClaw** (sandboxed, policy-controlled AI agent runtime) to **Azure Kubernetes Service (AKS)**. A pre-built companion Docker image contains the base orchestration stack (NemoClaw CLI, OpenShell, access policies) and hosted on **GitHub Container Registry (GHCR)**.
+This repo demonstrates the deployment of **NVIDIA NemoClaw** (sandboxed, policy-controlled AI agent runtime) to **Azure Kubernetes Service (AKS)**.
+
+A pre-built companion Docker image contains the base orchestration stack (NemoClaw CLI, OpenShell, access policies) and hosted on **GitHub Container Registry (GHCR)**.
 
 > [!NOTE]
-> This implementation delivers *remote* AI inference, i.e. `Nemotron 3 Nano 30B` model is consumed remotely from [NVIDIA's cloud](integrate.api.nvidia.com). Prompts are dynamically routed through the OpenShell gateway using your NVIDIA cloud's API key, managed by Kubernetes secrets.
+> This implementation delivers *remote* AI inference, i.e. `Nemotron 3 Nano 30B` model is consumed remotely from [NVIDIA's cloud](integrate.api.nvidia.com). Prompts are dynamically routed through the OpenShell gateway.
 
 ## 📑 Table of Contents
 - [Part 1: Prerequisites](#part-1-prerequisites)
