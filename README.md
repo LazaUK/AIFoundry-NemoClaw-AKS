@@ -41,7 +41,7 @@ git clone https://github.com/NVIDIA/NemoClaw.git
 ```
 
 ### 2.2 Prepare Deployment Files
-Download provided `nemoclaw-blueprint` from this repo. Your working directory should look like this:
+Copy the `nemoclaw-blueprint\` subfolder from step 2.1 into your working directory together with the `nemoclaw-deployment.yaml` file provided in this repo. Your working directory should look like this:
 
 ``` JSON
 <YOUR_INSTALLATION_DIRECTORY>\
@@ -185,7 +185,7 @@ openclaw tui
 
 The TUI status bar confirms the active model and token usage. To exit the TUI, use **Ctrl + D** key combination.
 
-![NemoClaw_Inference_Demo](NemoClaw_Inference_AKS.png)
+![NemoClaw_Inference_Demo](images/NemoClaw_Inference_AKS.png)
 
 ### 4.4 Inspect Active Security Policies
 
