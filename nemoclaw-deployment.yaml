@@ -1,0 +1,100 @@
+# =============================================================================
+# Deploy NemoClaw from GHCR image as an AKS Deployment + Service.
+#
+# Before applying, set the NVIDIA API key in the required section below.
+# <YOUR_NVIDIA_API_KEY>    starts with nvapi-  (from build.nvidia.com)
+# =============================================================================
+
+# ---- Namespace ---------------------------------------------------------------
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nemoclaw
+
+---
+# ---- NVIDIA API key ----------------------------------------------------------
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nvidia-api-key
+  namespace: nemoclaw
+type: Opaque
+stringData:
+  api-key: "<YOUR_NVIDIA_API_KEY>"
+
+---
+# ---- Deployment --------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nemoclaw-poc
+  namespace: nemoclaw
+  labels:
+    app: nemoclaw
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nemoclaw
+  template:
+    metadata:
+      labels:
+        app: nemoclaw
+    spec:
+      volumes:
+        # Ephemeral Docker graph storage — Docker daemon writes here
+        - name: docker-graph
+          emptyDir: {}
+
+      containers:
+        - name: nemoclaw
+          image: ghcr.io/lazauk/nemoclaw-azure:latest
+          imagePullPolicy: Always
+
+          securityContext:
+            privileged: true      # REQUIRED: OpenShell needs Landlock + seccomp + netns
+            runAsUser: 0
+
+          resources:
+            requests:
+              cpu: "2"
+              memory: "8Gi"
+            limits:
+              cpu: "4"
+              memory: "14Gi"
+
+          volumeMounts:
+            - name: docker-graph
+              mountPath: /var/lib/docker
+
+          env:
+            - name: NVIDIA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nvidia-api-key
+                  key: api-key
+            - name: SANDBOX_NAME
+              value: "my-nemoclaw-agent"
+
+          ports:
+            - containerPort: 8080    # OpenShell gateway
+            - containerPort: 18789   # NemoClaw internal service
+
+---
+# ---- Service -----------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: nemoclaw-service
+  namespace: nemoclaw
+spec:
+  type: ClusterIP
+  selector:
+    app: nemoclaw
+  ports:
+    - name: gateway
+      port: 8080
+      targetPort: 8080
+    - name: nemoclaw
+      port: 18789
+      targetPort: 18789
