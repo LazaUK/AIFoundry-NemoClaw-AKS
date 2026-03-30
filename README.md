@@ -25,27 +25,27 @@ git --version
 
 You will also need:
 
-| Requirement         | Where to access it                                                                                      |
-| ------------------- | ------------------------------------------------------------------------------------------------------- |
-| Azure subscription  | [Azure portal](https://portal.azure.com)                                                                |
-| NVIDIA API key      | [build.nvidia.com/settings/api-keys](https://build.nvidia.com/settings/api-keys) — starts with `nvapi-` |
+| Requirement         | Format                                                                    |
+| ------------------- | ------------------------------------------------------------------------- |
+| Azure subscription  | Authorised Contributor access to [Azure portal](https://portal.azure.com) |
+| NVIDIA API key      | String value that starts with `nvapi-`                                    |
 
 > [!TIP]
-> The NVIDIA API key is required for remote authentication to NVIDIA's cloud and consumption of the hosted AI model. You can obtain your free API key from the above Web page.
+> The NVIDIA API key is required for remote authentication to NVIDIA's cloud and consumption of hosted AI model. You can generate your free API key on this [Web page](https://build.nvidia.com/settings/api-keys).
 
 ---
 
 ## Part 2: Environment Setup
 
 ### 2.1 Get NemoClaw Blueprint Files
-You only need the `nemoclaw-blueprint/` subfolder from the official NVIDIA repo. You can downloading the latest version from the below GitHub repo, copy nemoclaw-blueprint directory and delete the rest:
+You only need the `nemoclaw-blueprint/` subfolder from the official NVIDIA repo. Download the latest version of NemoClaw package from the following GitHub repo, copy nemoclaw-blueprint directory and delete the rest:
 
 ``` PowerShell
 git clone https://github.com/NVIDIA/NemoClaw.git
 ```
 
 ### 2.2 Prepare Deployment Files
-Donwload provided `nemoclaw-blueprint` from this repo. Your working directory should look like this:
+Download provided `nemoclaw-blueprint` from this repo. Your working directory should look like this:
 
 ``` JSON
 <YOUR_INSTALLATION_DIRECTORY>\
@@ -57,7 +57,7 @@ Donwload provided `nemoclaw-blueprint` from this repo. Your working directory sh
 ```
 
 ### 2.3 Edit the Deployment YAML
-Open `nemoclaw-deployment.yaml` and replace the following **placeholder**:
+Open `nemoclaw-deployment.yaml` and replace the following **placeholder** field value:
 
 | Placeholder             | Replace with                                     |
 | ----------------------- | ------------------------------------------------ |
@@ -68,66 +68,58 @@ Open `nemoclaw-deployment.yaml` and replace the following **placeholder**:
 ## Part 3: AKS Deployment
 
 ### 3.1 Log In to Azure
+Ensure that you can access the right Azure subscription.
 
 ``` PowerShell
 az login
 az account show --query "{name:name, id:id}" -o table
 ```
 
-### 4.2 Create Resource Group and AKS Cluster
+### 3.2 Create Resource Group and AKS Cluster
+Create resource group to manage your AKS resource.
 
 ``` PowerShell
-az group create `
-  --name AAA_NemoClaw `
-  --location swedencentral `
-  --output table
+az group create --name <RESOURCE_GROUP_NAME> --location swedencentral --output table
 ```
 
+Create AKS cluster with a single node.
+
 ``` PowerShell
-az aks create `
-  --resource-group AAA_NemoClaw `
-  --name nemoclaw-aks `
-  --node-count 1 `
-  --node-vm-size Standard_D4s_v3 `
-  --node-osdisk-type Ephemeral `
-  --node-osdisk-size 100 `
-  --os-sku Ubuntu `
-  --generate-ssh-keys `
-  --output table
+az aks create --resource-group <RESOURCE_GROUP_NAME> --name nemoclaw-aks --node-count 1 --node-vm-size Standard_D4s_v3 --node-osdisk-type Ephemeral --node-osdisk-size 100 --os-sku Ubuntu --generate-ssh-keys --output table
 ```
 
 > [!NOTE]
-> `Standard_D4s_v3` (4 vCPU / 16 GB RAM) is the minimum viable size for NemoClaw — it requires at least 4 vCPU and 8 GB RAM. Ephemeral OS disk eliminates a separate managed disk charge. The Basic load balancer SKU was retired by Azure — omit the flag and Standard (default) is used at no extra cost for a single-node PoC.
+> For PoC purposes you can use `Ephemeral` OS disk, as it eliminates a separate managed disk charge.
 
-Wait for `ProvisioningState: Succeeded` (~3–5 minutes), then connect kubectl:
+Wait for `ProvisioningState: Succeeded` (~3–5 minutes), then retrieve Kubernetes credentials:
 
 ``` PowerShell
-az aks get-credentials `
-  --resource-group AAA_NemoClaw `
-  --name nemoclaw-aks `
-  --overwrite-existing
+az aks get-credentials --resource-group <RESOURCE_GROUP_NAME> --name nemoclaw-aks --overwrite-existing
 ```
 
-Verify the node is ready:
+Verify the AKS node is ready:
 
 ``` PowerShell
 kubectl get nodes
 ```
 
 Expected output:
-```
+
+``` JSON
 NAME                                STATUS   ROLES    AGE   VERSION
 aks-nodepool1-XXXXXXXXX-vmss000000  Ready    <none>   3m    v1.33.7
 ```
 
-### 4.3 Deploy NemoClaw
+### 3.3 Deploy NemoClaw
+You can now deploy NemoClaw to your AKS cluster.
 
 ``` PowerShell
 kubectl apply -f nemoclaw-deployment.yaml
 ```
 
 Expected output:
-```
+
+``` JSON
 namespace/nemoclaw created
 secret/nvidia-api-key created
 deployment.apps/nemoclaw-poc created
@@ -135,6 +127,7 @@ service/nemoclaw-service created
 ```
 
 ### 4.4 Watch Setup Progress
+Check if the new pod was successfully generated.
 
 ``` PowerShell
 kubectl get pods -n nemoclaw --watch
@@ -146,20 +139,11 @@ Wait for `STATUS = Running`, then stream the setup logs:
 kubectl logs -n nemoclaw -l app=nemoclaw --follow
 ```
 
-The setup runs through 7 stages inside the pod. The most time-consuming is `[5/7] Creating sandbox` which pulls and builds the OpenShell gateway container (~3–5 minutes). 
+The setup should run through 7 stages inside the pod. The most time-consuming part is `[5/7] Creating sandbox` which pulls and builds the OpenShell gateway container (~3–5 minutes). 
 
 Successful completion looks like:
 
-```
-Sandbox   my-nemoclaw-agent (Landlock + seccomp + netns)
-Model     nvidia/nemotron-3-nano-30b-a3b (NVIDIA Endpoints)
-Run:      nemoclaw my-nemoclaw-agent connect
-============================================================
-  NemoClaw PoC ready!
-============================================================
-```
-
-**Total setup time: 5–8 minutes.**
+![NemoClaw_Deploy_Completion](images/NemoClaw_Deploy_AKS.png)
 
 ---
 
