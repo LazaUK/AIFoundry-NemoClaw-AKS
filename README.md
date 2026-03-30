@@ -1,4 +1,4 @@
-# NemoClaw: Secure AI agent deplyment on Azure Kubernetes Services (AKS)
+# NemoClaw: AI agent deployment on Azure Kubernetes Services (AKS)
 
 This repo demonstrates the deployment of **NVIDIA NemoClaw** (sandboxed, policy-controlled AI agent runtime) to **Azure Kubernetes Service (AKS)**. A pre-built companion Docker image contains the base orchestration stack (NemoClaw CLI, OpenShell, access policies) and hosted on **GitHub Container Registry (GHCR)**.
 
