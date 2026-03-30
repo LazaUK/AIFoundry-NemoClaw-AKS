@@ -12,8 +12,6 @@ This repo demonstrates the deployment of **NVIDIA NemoClaw** (sandboxed, policy-
 - [Part 4: Testing the Agent](#part-4-testing-the-agent)
 - [Part 5: Cleanup](#part-5-cleanup)
 
----
-
 ## Part 1: Prerequisites
 You need to install [Azure CLI](..........), Kubernetes CLI - [kubectl](............) and [Git CLI](.............) on your local machine. Verify their presencse with the relevant commands below:
 
@@ -32,8 +30,6 @@ You will also need:
 
 > [!TIP]
 > The NVIDIA API key is required for remote authentication to NVIDIA's cloud and consumption of hosted AI model. You can generate your free API key on this [Web page](https://build.nvidia.com/settings/api-keys).
-
----
 
 ## Part 2: Environment Setup
 
@@ -62,8 +58,6 @@ Open `nemoclaw-deployment.yaml` and replace the following **placeholder** field 
 | Placeholder             | Replace with                                     |
 | ----------------------- | ------------------------------------------------ |
 | `<YOUR_NVIDIA_API_KEY>` | Your key from build.nvidia.com (starts `nvapi-`) |
-
----
 
 ## Part 3: AKS Deployment
 
@@ -126,7 +120,7 @@ deployment.apps/nemoclaw-poc created
 service/nemoclaw-service created
 ```
 
-### 4.4 Watch Setup Progress
+### 3.4 Watch Setup Progress
 Check if the new pod was successfully generated.
 
 ``` PowerShell
@@ -141,16 +135,13 @@ kubectl logs -n nemoclaw -l app=nemoclaw --follow
 
 The setup should run through 7 stages inside the pod. The most time-consuming part is `[5/7] Creating sandbox` which pulls and builds the OpenShell gateway container (~3–5 minutes). 
 
-Successful completion looks like:
+Successful completion may look like this:
 
 ![NemoClaw_Deploy_Completion](images/NemoClaw_Deploy_AKS.png)
 
----
+## Part 4: Testing the Agent
 
-## Part 5: Testing the Agent
-
-### 5.1 Connect to the Sandbox
-
+### 4.1 Connect to the Sandbox
 Open a shell inside the running pod:
 
 ``` PowerShell
@@ -164,18 +155,20 @@ nemoclaw my-nemoclaw-agent connect
 ```
 
 You are now inside the sandboxed environment:
-```
+
+``` JSON
 sandbox@my-nemoclaw-agent:~$
 ```
 
-### 5.2 Test with a Single Message
+### 4.2 Test with a Single Message
 
 ``` bash
-openclaw agent --agent main --local -m "hello from Azure AKS!" --session-id test
+openclaw agent --agent main --local -m "Hello from Azure AKS!" --session-id test
 ```
 
-Expected response:
-```
+Expected response may look like this:
+
+``` JSON
 🦞 OpenClaw 2026.3.11
 Hey there! Great to meet you from Azure AKS. How can I help you today?
 ```
@@ -183,37 +176,35 @@ Hey there! Great to meet you from Azure AKS. How can I help you today?
 > [!NOTE]
 > `UNDICI-EHPA` warnings from openclaw are harmless — Node.js experimental HTTP proxy agent. Safe to ignore.
 
-### 5.3 Open the Interactive TUI
+### 4.3 Open the Interactive TUI
+Alternatively, you can interact with your agent through Terminal User Interface (TUI). Launch it with the following command
 
 ``` bash
 openclaw tui
 ```
 
-The TUI status bar confirms the active model and token usage:
+The TUI status bar confirms the active model and token usage. To exit the TUI, use **Ctrl + D** key combination.
 
-```
-connected | idle
-agent main | session main (openclaw-tui)
-inference/nvidia/nemotron-3-nano-30b-a3b | tokens 19k/131k (14%)
-```
+![NemoClaw_Inference_Demo](NemoClaw_Inference_AKS.png)
 
-To exit the TUI: **Ctrl+D**
+### 4.4 Inspect Active Security Policies
 
-### 5.4 Inspect Active Security Policies
-
-Exit the sandbox (`exit`) but stay in the pod shell. Run these to showcase the sandbox security to others:
+Exit the sandbox (with `exit` command), but stay in the pod shell. Run these commands to check the sandbox security settings:
 
 List all sandboxes and their status:
+
 ``` bash
 openshell sandbox list
 ```
 
 Show the full active network policy in human-readable YAML:
+
 ``` bash
 cat /app/nemoclaw-blueprint/policies/openclaw-sandbox.yaml
 ```
 
 Show a formatted table of all allowed network endpoints and their binary restrictions:
+
 ``` bash
 python3 -c "
 lines = open('/app/nemoclaw-blueprint/policies/openclaw-sandbox.yaml').readlines()
@@ -247,44 +238,29 @@ print_block(policy, hosts, bins)
 "
 ```
 
-> [!TIP]
+> [!IMPORTANT]
 > The binary restriction column is the key differentiator from standard Docker isolation. It's not just "this host is allowed" — it's "**only this specific binary** can talk to this host". Even if the agent is compromised via prompt injection and tries to `curl` or `wget` a restricted endpoint, OpenShell blocks it at the kernel level.
 
----
+## Part 5: Cleanup
 
-## Part 6: Cleanup
-
-### Pause (stop pod, keep cluster for next session)
+### 5.1 Pause (stop pod, keep cluster for next session)
+You can stop the pod by scaling replica number down to `0`.
 
 ``` PowerShell
 kubectl scale deployment nemoclaw-poc -n nemoclaw --replicas=0
 ```
 
-Verify it's down:
-``` PowerShell
-kubectl get pods -n nemoclaw
-# Expected: No resources found in nemoclaw namespace.
-```
-
-### Resume
+### 5.2 Resume
+To resume, set it back to `1`.
 
 ``` PowerShell
 kubectl scale deployment nemoclaw-poc -n nemoclaw --replicas=1
 ```
 
----
-
-### Resource Deletion
-
-When your PoC is completely done, delete all Azure resources:
+### 5.3 Resource Deletion
+You can delete AKS resource (and all NemoClaw related deployments) with these commands:
 
 ``` PowerShell
-az group delete --name AAA_NemoClaw --yes --no-wait
+az group delete --name <RESOURCE_GROUP_NAME> --yes --no-wait
 kubectl config delete-context nemoclaw-aks
-```
-
-Confirm deletion (~3 minutes):
-``` PowerShell
-az group show --name AAA_NemoClaw
-# Expected: ResourceNotFoundError once fully deleted
 ```
