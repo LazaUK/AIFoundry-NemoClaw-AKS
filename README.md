@@ -15,7 +15,7 @@ A pre-built companion Docker image contains the base orchestration stack (NemoCl
 - [Part 5: Cleanup](#part-5-cleanup)
 
 ## Part 1: Prerequisites
-You need to install [Azure CLI](..........), Kubernetes CLI - [kubectl](............) and [Git CLI](.............) on your local machine. Verify their presencse with the relevant commands below:
+You need to install [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli), Kubernetes CLI - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/) and [Git CLI](https://git-scm.com/downloads/win) on your local machine. Verify their presencse with the relevant commands below:
 
 ``` PowerShell
 az version
