@@ -15,12 +15,11 @@ A pre-built companion Docker image contains the base orchestration stack (NemoCl
 - [Part 5: Cleanup](#part-5-cleanup)
 
 ## Part 1: Prerequisites
-You need to install [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli), Kubernetes CLI - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/) and [Git CLI](https://git-scm.com/downloads/win) on your local machine. Verify their presencse with the relevant commands below:
+You need to install [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) and Kubernetes CLI - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/) on your local machine. Verify their presence with the relevant commands below:
 
 ``` PowerShell
 az version
 kubectl version --client
-git --version
 ```
 
 You will also need:
@@ -35,26 +34,10 @@ You will also need:
 
 ## Part 2: Environment Setup
 
-### 2.1 Get NemoClaw Blueprint Files
-You only need the `nemoclaw-blueprint/` subfolder from the official NVIDIA repo. Download the latest version of NemoClaw package from the following GitHub repo, copy nemoclaw-blueprint directory and delete the rest:
+### 2.1 Prepare Deployment Files
+Download `nemoclaw-deployment.yaml` from this repo. This is the only file you need locally: the NemoClaw **blueprint** and **policy** files are already bundled inside the pre-built *companion Docker image*, so AKS will pull everything required at deployment time.
 
-``` PowerShell
-git clone https://github.com/NVIDIA/NemoClaw.git
-```
-
-### 2.2 Prepare Deployment Files
-Copy the `nemoclaw-blueprint\` subfolder from step 2.1 into your working directory together with the `nemoclaw-deployment.yaml` file provided in this repo. Your working directory should look like this:
-
-``` JSON
-<YOUR_INSTALLATION_DIRECTORY>\
-├── nemoclaw-deployment.yaml
-└── nemoclaw-blueprint\
-    └── policies\
-        ├── openclaw-sandbox.yaml
-        └── presets\
-```
-
-### 2.3 Edit the Deployment YAML
+### 2.2 Edit the Deployment YAML
 Open `nemoclaw-deployment.yaml` and replace the following **placeholder** field value:
 
 | Placeholder             | Replace with                                     |
