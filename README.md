@@ -162,7 +162,7 @@ Hey there! Great to meet you from Azure AKS. How can I help you today?
 > `UNDICI-EHPA` warnings from openclaw are harmless — Node.js experimental HTTP proxy agent. Safe to ignore.
 
 ### 4.3 Open the Interactive TUI
-Alternatively, you can interact with your agent through Terminal User Interface (TUI). Launch it with the following command
+Alternatively, you can interact with your agent through Text User Interface (TUI). Launch it with the following command
 
 ``` bash
 openclaw tui
